@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 
 """
-
+	An entry point to run the backend.
 """
 
 import sys, getopt
