@@ -2,38 +2,47 @@
 	Main class wrapping network interceptors tools.
 """
 
-import os, subprocess, shutil, Queue
+import os, shutil, subprocess, Queue
+from threading import Thread
+from time import sleep
 
 # pill watchdog
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+# pacman python2-imaging
+from PIL import Image
+
+# python2-beautifulsoup4
+from BeautifulSoup import BeautifulSoup as Soup
+
+
 class OutputDirectoryListener(FileSystemEventHandler):
-   """Private class"""
+	"""Private class"""
 
-   # http://pillow.readthedocs.org/en/latest/handbook/image-file-formats.html
-   image_extensions = ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'im']
+	# http://pillow.readthedocs.org/en/latest/handbook/image-file-formats.html
+	image_extensions = ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'im']
 
-   def __init__(self, observer, image_extraction_queue):
-      self.image_extraction_queue = image_extraction_queue
-      self.directory_observer = observer
+	def __init__(self, observer, image_extraction_queue):
+		self.image_extraction_queue = image_extraction_queue
+		self.directory_observer = observer
 
-   def on_created(self, event):
-      if not event.is_directory:
-         filename = event.src_path[event.src_path.rfind('/') + 1:]
-         extension = filename[filename.rfind('.') + 1:]
+	def on_created(self, event):
+		if not event.is_directory:
+			filename = event.src_path[event.src_path.rfind('/') + 1:]
+			extension = filename[filename.rfind('.') + 1:]
 
-         if extension in self.image_extensions:
-            self.image_extraction_queue.put(event.src_path)
+			if extension in self.image_extensions:
+				self.image_extraction_queue.put(event.src_path)
 
-   def on_modified(self, event):
-      pass
+	def on_modified(self, event):
+		pass
 
-   def on_deleted(self, event):
-      pass
+	def on_deleted(self, event):
+		pass
 
-   def stop_observer(self):
-      self.directory_observer.stop()
+	def stop_observer(self):
+		self.directory_observer.stop()
 
 class Main():
 
@@ -50,11 +59,10 @@ class Main():
 		self.images_dir = os.path.join(output, 'images')
 
 		self.init_directories(clean)
-
 		self.start_output_dir_listener()
 
+		self.start_threads(True)
 		self.tcpflow_as_main_process(interface)
-
 
 	def init_directories(self, clean):
 		if os.path.exists(self.output_dir) == False:
@@ -87,6 +95,47 @@ class Main():
 			recursive = False
 		)
 		self.directory_observer.start()
+
+	def start_threads(self, as_daemon):
+		"""
+			as_daemon == True: quits without waiting for the thread to finish.
+		"""
+		thread = Thread(target = self.image_extraction_queue_listener, args=[])
+		thread.daemon = as_daemon
+		thread.start()
+
+	def image_extraction_queue_listener(self):
+		while True:
+			try:
+				filepath = self.image_extraction_queue.get()
+				print filepath
+
+				while True:
+					try:
+						image = Image.open(filepath)
+						width, height = image.size
+
+						if width > self.min_width and height > self.min_height:
+							
+							filename = filepath[filepath.rfind('/') + 1:]
+
+							src = os.path.join(self.raw_dir, filename)
+							dst = os.path.join(self.images_dir, filename)
+
+							# TODO decide what to do
+							print dst
+
+							# overwrites, otherwise use .copy2()
+							shutil.move(src, dst)
+							
+						break
+
+					except IOError as error:
+						print error
+						sleep(0.2)
+
+			except Queue.Empty:
+				pass
 
 	def tcpflow_as_main_process(self, interface):
 		"""
