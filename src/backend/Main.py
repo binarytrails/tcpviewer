@@ -2,7 +2,7 @@
 	Main class wrapping network interceptors tools.
 """
 
-import os, shutil, subprocess, Queue
+import os, re, shutil, subprocess, Queue
 from threading import Thread
 from time import sleep
 
@@ -52,6 +52,8 @@ class Main():
 
 	min_width = 500
 	min_height = 500
+
+	ipv4_regex = re.compile('[0-9]+(?:\.[0-9]+){3}')
 
 	def __init__(self, interface, output, clean):
 		self.output_dir = output
@@ -160,6 +162,7 @@ class Main():
 							# TODO decide what to do with this data, sqlite dump?
 							print dst
 							print self.get_image_mac_addrs_from_report(filename)
+							print re.findall(self.ipv4_regex, filename)
 
 							# overwrites, otherwise use .copy2()
 							shutil.move(src, dst)
