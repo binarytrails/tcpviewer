@@ -1,8 +1,8 @@
-var fs = require('fs')
-    , http = require('http')
-    , socketio = require('socket.io');
-
-var _ = require("underscore");
+var fs = require('fs'),
+    http = require('http'),
+    io = require('socket.io'),
+    _ = require("underscore"),
+    watch = require('watch');
 
 var server = http.createServer(function(req, res) {
     res.writeHead(200, { 'Content-type': 'text/html'});
@@ -11,17 +11,19 @@ var server = http.createServer(function(req, res) {
     console.log('Listening at: http://localhost:8080');
 });
 
-var images = fs.readdirSync('./data/');
 
-images = _.filter(images, function(e) {
-    return (e != ".DS_Store");
-});
+io.listen(server).on('connection', function (socket) {
+    var images = fs.readdirSync('./data/');
 
-console.log(images);
+    images = _.filter(images, function(e) {
+        return (e != ".DS_Store");
+    });
 
-socketio.listen(server).on('connection', function (socket) {
-    socket.on('message', function (msg) {
-        console.log('Message Received: ', msg);
-        socket.broadcast.emit('message', msg);
+
+    socket.emit('images', images);
+
+    socket.on('image', function (img) {
+        console.log('Image Received: ', img);
+        socket.broadcast.emit('image', img);
     });
 });

@@ -8,31 +8,21 @@
             var iosocket = io.connect();
 
             iosocket.on('connect', function () {
-                $('#incomingChatMessages').append($('<li>Connected</li>'));
 
-                iosocket.on('message', function(message) {
-                    $('#incomingChatMessages').append($('<li></li>').text(message));
-                });
-                iosocket.on('disconnect', function() {
-                    $('#incomingChatMessages').append('<li>Disconnected</li>');
-                });
             });
 
-            $('#outgoingChatMessage').keypress(function(event) {
-                if(event.which == 13) {
-                    event.preventDefault();
-                    iosocket.send($('#outgoingChatMessage').val());
-                    $('#incomingChatMessages').append($('<li></li>').text($('#outgoingChatMessage').val()));
-                    $('#outgoingChatMessage').val('');
-                }
+            iosocket.on('images', function(data) {
+                console.log(data);
             });
+
+            iosocket.on('image', function(data) {
+                console.log("Image received client" + data);
+            });
+
         });
     </script>
 </head>
 <body>
-Incoming Chat: <ul id="incomingChatMessages"></ul>
 
-
-<input type="text" id="outgoingChatMessage">
 </body>
 </html>
