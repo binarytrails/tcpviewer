@@ -8,6 +8,33 @@ import os, subprocess, shutil, Queue
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
+class OutputDirectoryListener(FileSystemEventHandler):
+   """Private class"""
+
+   # http://pillow.readthedocs.org/en/latest/handbook/image-file-formats.html
+   image_extensions = ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'im']
+
+   def __init__(self, observer, image_extraction_queue):
+      self.image_extraction_queue = image_extraction_queue
+      self.directory_observer = observer
+
+   def on_created(self, event):
+      if not event.is_directory:
+         filename = event.src_path[event.src_path.rfind('/') + 1:]
+         extension = filename[filename.rfind('.') + 1:]
+
+         if extension in self.image_extensions:
+            self.image_extraction_queue.put(event.src_path)
+
+   def on_modified(self, event):
+      pass
+
+   def on_deleted(self, event):
+      pass
+
+   def stop_observer(self):
+      self.directory_observer.stop()
+
 class Main():
 
 	directory_observer = Observer()
@@ -23,6 +50,8 @@ class Main():
 		self.images_dir = os.path.join(output, 'images')
 
 		self.init_directories(clean)
+
+		self.start_output_dir_listener()
 
 		self.tcpflow_as_main_process(interface)
 
@@ -46,6 +75,18 @@ class Main():
 			stdout = subprocess.PIPE, 
 			stderr = subprocess.STDOUT
 		)
+
+	def start_output_dir_listener(self):
+		event_handler = OutputDirectoryListener(
+			self.directory_observer,
+			self.image_extraction_queue
+		)
+		self.directory_observer.schedule(
+			event_handler,
+			self.raw_dir,
+			recursive = False
+		)
+		self.directory_observer.start()
 
 	def tcpflow_as_main_process(self, interface):
 		"""
