@@ -2,6 +2,8 @@ var fs = require('fs')
     , http = require('http')
     , socketio = require('socket.io');
 
+var _ = require("underscore");
+
 var server = http.createServer(function(req, res) {
     res.writeHead(200, { 'Content-type': 'text/html'});
     res.end(fs.readFileSync(__dirname + '/index.html'));
@@ -10,6 +12,11 @@ var server = http.createServer(function(req, res) {
 });
 
 var images = fs.readdirSync('./data/');
+
+images = _.filter(images, function(e) {
+    return (e != ".DS_Store");
+});
+
 console.log(images);
 
 socketio.listen(server).on('connection', function (socket) {
