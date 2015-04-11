@@ -104,11 +104,46 @@ class Main():
 		thread.daemon = as_daemon
 		thread.start()
 
+
+	def get_image_mac_addrs_from_report(self, filename):
+		'''
+		XML report revelent structure
+
+			fileobject
+				filename		<--	root_filename
+				filesize
+				tcpflow			<--	mac addresses and more
+
+			byte_runs
+				byte_run
+				filename		<--	root_filename--HTTPBODY-#-?.?
+				filesize
+		'''
+		root_filename = filename[0:filename.rfind('-HTTPBODY-')]
+
+		smac = None
+		dmac = None
+
+		with open(self.xml_report_path) as report:
+			handler = report.read()
+			soup = Soup(handler)
+
+		for fileobject in soup.findAll('fileobject'):
+			filename = fileobject.find('filename')
+
+			if filename and root_filename in str(filename):
+				tcpflow = fileobject.find('tcpflow')
+
+				if tcpflow:
+					smac = str(tcpflow['mac_saddr'])
+					dmac = str(tcpflow['mac_daddr'])
+
+		return [smac, dmac]
+
 	def image_extraction_queue_listener(self):
 		while True:
 			try:
 				filepath = self.image_extraction_queue.get()
-				print filepath
 
 				while True:
 					try:
@@ -122,12 +157,13 @@ class Main():
 							src = os.path.join(self.raw_dir, filename)
 							dst = os.path.join(self.images_dir, filename)
 
-							# TODO decide what to do
+							# TODO decide what to do with this data, sqlite dump?
 							print dst
+							print self.get_image_mac_addrs_from_report(filename)
 
 							# overwrites, otherwise use .copy2()
 							shutil.move(src, dst)
-							
+
 						break
 
 					except IOError as error:
