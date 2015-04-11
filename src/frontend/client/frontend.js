@@ -1,3 +1,7 @@
-/**
- * Created by andrei on 2015-04-11.
- */
+Meteor.subscribe("images");
+
+Template.main.helpers({
+    allImages: function() {
+        return Images.find();
+    }
+});

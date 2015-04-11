@@ -11,8 +11,14 @@
 $font-header: 'Ek Mukta', cursive
 $font-normal: 'Roboto Slab', serif
 
-$black: #2A2728
+$dark: #444546
+$red: #C11515
+$grey: #9E9E9E
+$orange: #FFAB19
 
+header
+  color: $orange
+  text-align: center
 
 h1
   font-size: 64px
@@ -26,14 +32,10 @@ h1, h2, h3, h4, h5
 p
   font-size: 13px
 
-header, nav, #content, footer
-  margin: 0 10%
-  border-left: 1px double black
-  border-right: 1px double black
-
 body
-  background: $black
+  background: $dark
   margin: 0
   padding: 0
   font: 100% $font-normal
   overflow-x : hidden
+  color: $grey

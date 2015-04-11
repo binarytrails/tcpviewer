@@ -5,7 +5,9 @@
 # but you can also edit it by hand.
 
 meteor-platform
-autopublish
 insecure
-cfs:standard-packages
-cfs:filesystem
+meteorhacks:npm
+
+
+npm-container
+underscore

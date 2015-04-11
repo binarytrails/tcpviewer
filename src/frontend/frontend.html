@@ -3,11 +3,15 @@
 </head>
 
 <body>
-  <h1>4Snap</h1>
+  <header>
+      <h1>4Snap</h1>
+  </header>
 
   {{> main}}
 </body>
 
 <template name="main">
-
+  {{#each allImages}}
+    <img src="data/{{name}}">
+  {{/each}}
 </template>
