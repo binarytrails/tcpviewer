@@ -1,3 +1,6 @@
-/**
- * Created by andrei on 2015-04-11.
- */
+Meteor.startup(function () {
+    var Images = new FS.Collection("images", {
+        stores: [new FS.Store.FileSystem("images", {path: "~/uploads"})]
+    });
+    
+});
