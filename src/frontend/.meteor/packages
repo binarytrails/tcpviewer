@@ -7,3 +7,5 @@
 meteor-platform
 autopublish
 insecure
+cfs:standard-packages
+cfs:filesystem

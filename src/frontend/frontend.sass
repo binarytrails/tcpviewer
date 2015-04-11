@@ -1,0 +1,39 @@
+@import url(http://fonts.googleapis.com/css?family=Ek+Mukta:200,400)
+@import url(http://fonts.googleapis.com/css?family=Roboto+Slab)
+
+=filter($filter-type,$filter-amount)
+  -webkit-filter: $filter-type+unquote('(#{$filter-amount})')
+  -moz-filter: $filter-type+unquote('(#{$filter-amount})')
+  -ms-filter: $filter-type+unquote('(#{$filter-amount})')
+  -o-filter: $filter-type+unquote('(#{$filter-amount})')
+  filter: $filter-type+unquote('(#{$filter-amount})')
+
+$font-header: 'Ek Mukta', cursive
+$font-normal: 'Roboto Slab', serif
+
+$black: #2A2728
+
+
+h1
+  font-size: 64px
+h2
+  font-size: 32px
+
+h1, h2, h3, h4, h5
+  font-family: $font-header
+  font-weight: bold
+
+p
+  font-size: 13px
+
+header, nav, #content, footer
+  margin: 0 10%
+  border-left: 1px double black
+  border-right: 1px double black
+
+body
+  background: $black
+  margin: 0
+  padding: 0
+  font: 100% $font-normal
+  overflow-x : hidden

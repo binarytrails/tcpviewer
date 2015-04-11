@@ -1,1 +1,28 @@
-/* CSS declarations go here */
+@import url(http://fonts.googleapis.com/css?family=Ek+Mukta:200,400);
+@import url(http://fonts.googleapis.com/css?family=Roboto+Slab);
+h1 {
+  font-size: 64px; }
+
+h2 {
+  font-size: 32px; }
+
+h1, h2, h3, h4, h5 {
+  font-family: "Ek Mukta", cursive;
+  font-weight: bold; }
+
+p {
+  font-size: 13px; }
+
+header, nav, #content, footer {
+  margin: 0 10%;
+  border-left: 1px double black;
+  border-right: 1px double black; }
+
+body {
+  background: #2A2728;
+  margin: 0;
+  padding: 0;
+  font: 100% "Roboto Slab", serif;
+  overflow-x: hidden; }
+
+/*# sourceMappingURL=frontend.css.map */
