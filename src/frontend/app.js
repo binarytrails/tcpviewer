@@ -28,7 +28,7 @@ io.on('connection', function (socket) {
 
     socket.emit('images', images);
 
-    watcher.on('change', function ( file, stat ) {
+    watcher.on('create', function ( file, stat ) {
         console.log(file);
         socket.emit('image', file.replace(/^.*[\\\/]/, ''));
     });
