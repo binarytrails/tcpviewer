@@ -10,9 +10,7 @@ server.listen(8080);
 
 
 var WatchIO = require('watch.io'),
-    watcher = new WatchIO({
-        delay: 100
-    });
+    watcher = new WatchIO();
 
 watcher.watch('./public/output/images');
 
