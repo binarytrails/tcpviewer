@@ -25,7 +25,8 @@ class OutputDirectoryListener(FileSystemEventHandler):
 	"""Private class"""
 
 	# http://pillow.readthedocs.org/en/latest/handbook/image-file-formats.html
-	image_extensions = ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'im']
+	# gif crashes
+	image_extensions = ['jpeg', 'jpg', 'png']
 
 	def __init__(self, observer, image_extraction_queue):
 		self.image_extraction_queue = image_extraction_queue
