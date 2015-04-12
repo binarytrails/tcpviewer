@@ -13,16 +13,15 @@
                             document.getElementById("right-image-hash")];
 
             var appendCurrent = function(e) {
-                var img = document.createElement("img");
-                img.src = "data/" + e;
+                var img = new Image();
+                img.src = "output/images/" + e;
 
-                divs[currentCol].appendChild(img);
+                divs[currentCol].insertBefore(img,divs[currentCol].firstChild);
 
                 currentCol = (currentCol == 0) ? 1 : 0;
             };
 
             iosocket.on('images', function(data) {
-
                 _.each(data, appendCurrent);
             });
 
@@ -51,12 +50,8 @@
 
 <!-- Content -->
 <div id="content">
-    <div id="left-image-hash" class='sides'>
-
-    </div>
-    <div id="right-image-hash" class='sides'>
-
-    </div>
+    <div id="left-image-hash" class='sides'></div>
+    <div id="right-image-hash" class='sides'></div>
 </div>
 
 </body>

@@ -11,7 +11,7 @@ server.listen(8080);
 var WatchIO = require('watch.io'),
     watcher = new WatchIO();
 
-watcher.watch('./public/data');
+watcher.watch('./public/output/images');
 
 app.use(express.static(__dirname + '/public'));
 app.get('/', function(req, res) {
@@ -19,7 +19,7 @@ app.get('/', function(req, res) {
 });
 
 io.on('connection', function (socket) {
-    var images = fs.readdirSync('./public/data/');
+    var images = fs.readdirSync('./public/output/images/');
 
     images = _.filter(images, function(e) {
         return (e != ".DS_Store");
