@@ -3,8 +3,12 @@
 """
 
 import os, re, shutil, subprocess, Queue
+from datetime import datetime
 from threading import Thread
 from time import sleep
+
+import uuid
+import sqlite3 as lite
 
 # pill watchdog
 from watchdog.events import FileSystemEventHandler
@@ -63,6 +67,9 @@ class Main():
 		self.init_directories(clean)
 		self.start_output_dir_listener()
 
+		self.db_path = os.path.join(output, 'database.db')
+		self.init_sqlite_db()
+
 		self.start_threads(True)
 		self.tcpflow_as_main_process(interface)
 
@@ -78,6 +85,31 @@ class Main():
 
 		if os.path.exists(self.images_dir) == False:
 			os.mkdir(self.images_dir)
+
+	def execute_sql_command_on_sqlite_db(self, command):
+		connection = lite.connect(self.db_path)
+		with connection:
+			cursor = connection.cursor()  
+			cursor.execute(command)
+			data = cursor.fetchone()
+
+		return data 
+
+	def init_sqlite_db(self):
+		command = """CREATE TABLE Images(
+			HASH TEXT,
+			ABSPATH TEXT,
+			TIMESTAMP DATE,
+			SMAC TEXT,
+			DMAC TEXT,
+			SIP TEXT,
+			DIP TEXT
+		);
+		"""
+		self.execute_sql_command_on_sqlite_db(command)
+
+	def quotes(self, data):
+		return "'" + str(data) + "'"
 
 	def start_loud_subprocess(self, command):
 		return subprocess.Popen(command,
@@ -105,7 +137,6 @@ class Main():
 		thread = Thread(target = self.image_extraction_queue_listener, args=[])
 		thread.daemon = as_daemon
 		thread.start()
-
 
 	def get_image_mac_addrs_from_report(self, filename):
 		'''
@@ -155,14 +186,25 @@ class Main():
 						if width > self.min_width and height > self.min_height:
 							
 							filename = filepath[filepath.rfind('/') + 1:]
+							filename_uuid = str(uuid.uuid4())
 
-							src = os.path.join(self.raw_dir, filename)
-							dst = os.path.join(self.images_dir, filename)
+							src = os.path.abspath(os.path.join(self.raw_dir, filename))
+							dst = os.path.abspath(os.path.join(self.images_dir, filename_uuid + ".jpg"))
 
-							# TODO decide what to do with this data, sqlite dump?
 							print dst
-							print self.get_image_mac_addrs_from_report(filename)
-							print re.findall(self.ipv4_regex, filename)
+							macs = self.get_image_mac_addrs_from_report(filename)
+							ips = re.findall(self.ipv4_regex, filename)
+
+							command = ("INSERT INTO Images Values(" +
+								self.quotes(filename_uuid) + "," +
+								self.quotes(dst) + "," +
+								self.quotes(datetime.now()) + "," +
+								self.quotes(macs[0]) + "," +
+								self.quotes(macs[1]) + "," +
+								self.quotes(ips[0]) + "," +
+								self.quotes(ips[1]) + ");")
+							
+							self.execute_sql_command_on_sqlite_db(command)
 
 							# overwrites, otherwise use .copy2()
 							shutil.move(src, dst)
