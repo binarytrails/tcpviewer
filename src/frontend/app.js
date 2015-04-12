@@ -1,24 +1,25 @@
 var fs = require('fs'),
-    http = require('http'),
-    io = require('socket.io'),
+    express = require('express');
+    app = express(),
+    server = require('http').Server(app),
+    io = require('socket.io')(server),
     _ = require("underscore");
+
+server.listen(8080);
+
 
 var WatchIO = require('watch.io'),
     watcher = new WatchIO();
 
-watcher.watch('./data');
+watcher.watch('./public/data');
 
-
-var server = http.createServer(function(req, res) {
-    res.writeHead(200, { 'Content-type': 'text/html'});
-    res.end(fs.readFileSync(__dirname + '/index.html'));
-}).listen(8080, function() {
-    console.log('Listening at: http://localhost:8080');
+app.use(express.static(__dirname + '/public'));
+app.get('/', function(req, res) {
+   res.sendFile(__dirname + '/index.html');
 });
 
-
-io.listen(server).on('connection', function (socket) {
-    var images = fs.readdirSync('./data/');
+io.on('connection', function (socket) {
+    var images = fs.readdirSync('./public/data/');
 
     images = _.filter(images, function(e) {
         return (e != ".DS_Store");

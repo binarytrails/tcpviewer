@@ -1,28 +1,63 @@
 <html>
 <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         $(function(){
 
-            var iosocket = io.connect();
+            var     currentCol = 0,
+                    iosocket = io.connect(),
 
-            iosocket.on('connect', function () {
+                    divs = [document.getElementById("left-image-hash"),
+                            document.getElementById("right-image-hash")];
 
-            });
+            var appendCurrent = function(e) {
+                var img = document.createElement("img");
+                img.src = "data/" + e;
+
+                divs[currentCol].appendChild(img);
+
+                currentCol = (currentCol == 0) ? 1 : 0;
+            };
 
             iosocket.on('images', function(data) {
-                console.log(data);
+
+                _.each(data, appendCurrent);
             });
 
-            iosocket.on('image', function(data) {
-                console.log("Image received client" + data);
-            });
+            iosocket.on('image', appendCurrent);
 
         });
     </script>
+    <meta charset="UTF-8">
+    <meta name="description" content="HackPrinceton 2015">
+    <meta name="keywords" content="HackPrinceton 2015">
+    <meta name="author" content="Vsevolod Ivanov">
+    <meta name="author" content="Andrei Savin">
+
+    <link rel="stylesheet" href="base.css">
+
+<head>
+    <title>HackPrinceton 2015</title>
 </head>
+
 <body>
+<div id="header">
+    <div id="menu">
+        <header>HackPrinceton 2015 <small><small>by Quebec Team</small></small></header>
+    </div>
+</div>
+
+<!-- Content -->
+<div id="content">
+    <div id="left-image-hash" class='sides'>
+
+    </div>
+    <div id="right-image-hash" class='sides'>
+
+    </div>
+</div>
 
 </body>
 </html>
