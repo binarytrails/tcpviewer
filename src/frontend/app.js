@@ -3,7 +3,8 @@ var fs = require('fs'),
     app = express(),
     server = require('http').Server(app),
     io = require('socket.io')(server),
-    _ = require("underscore");
+    _ = require("underscore"),
+    path = require('path');
 
 server.listen(8080);
 
@@ -27,7 +28,8 @@ io.on('connection', function (socket) {
 
     socket.emit('images', images);
 
-    watcher.on('create', function ( file, stat ) {
+    watcher.on('change', function ( file, stat ) {
+        console.log(file);
         socket.emit('image', file.replace(/^.*[\\\/]/, ''));
     });
 });
