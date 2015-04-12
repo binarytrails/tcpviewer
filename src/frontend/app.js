@@ -10,7 +10,9 @@ server.listen(8080);
 
 
 var WatchIO = require('watch.io'),
-    watcher = new WatchIO();
+    watcher = new WatchIO({
+        delay: 100
+    });
 
 watcher.watch('./public/output/images');
 
@@ -28,10 +30,11 @@ io.on('connection', function (socket) {
 
     socket.emit('images', images);
 
-    watcher.on('create', function ( file, stat ) {
+    watcher.on('change', function ( type, file, stat ) {
         console.log(file);
         socket.emit('image', file.replace(/^.*[\\\/]/, ''));
     });
+
 });
 
 watcher.close('./data');
