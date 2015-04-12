@@ -1,8 +1,13 @@
 var fs = require('fs'),
     http = require('http'),
     io = require('socket.io'),
-    _ = require("underscore"),
-    watch = require('watch');
+    _ = require("underscore");
+
+var WatchIO = require('watch.io'),
+    watcher = new WatchIO();
+
+watcher.watch('./data');
+
 
 var server = http.createServer(function(req, res) {
     res.writeHead(200, { 'Content-type': 'text/html'});
@@ -19,11 +24,11 @@ io.listen(server).on('connection', function (socket) {
         return (e != ".DS_Store");
     });
 
-
     socket.emit('images', images);
 
-    socket.on('image', function (img) {
-        console.log('Image Received: ', img);
-        socket.broadcast.emit('image', img);
+    watcher.on('create', function ( file, stat ) {
+        socket.emit('image', file.replace(/^.*[\\\/]/, ''));
     });
 });
+
+watcher.close('./data');
