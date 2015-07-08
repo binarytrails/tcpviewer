@@ -1,4 +1,6 @@
-# HackPrinceton 2015
+# Tcpflow visualiser
+
+First version written during HackPrinceton 2015
 
 We wrap tcpflow to arrange data for dynamic visualisation.
 
