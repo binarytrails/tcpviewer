@@ -1,2 +1,3 @@
+# pip -r requirements.txt
 watchdog
 BeautifulSoup4
