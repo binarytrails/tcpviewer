@@ -1,0 +1,9 @@
+# General
+    tcpflow
+# Arch
+	python2-imaging
+	python2-beautifulsoup4
+# Debian
+    python-pil
+    python-bs4
+
