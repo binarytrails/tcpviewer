@@ -6,17 +6,48 @@ var fs = require('fs'),
     server = require('http').Server(app),
     io = require('socket.io')(server),
     _ = require("underscore"),
-    path = require('path');
+    path = require('path'),
+    readChunk = require('read-chunk'),
+    imageType = require('image-type');
 
 program
   .version('0.1.0')
   .usage('[options] <file ...>')
   .option('-a, --address <ip:port>', 'listen on the ip address and port', ip_port_regex.v4())
+  //.option('-i, --input <path>', 'images input directory')
   .parse(process.argv);
 
+var static_dir = "/public",
+    images_dir = "/output/images/",
+    WatchIO = require('watch.io'),
+    watcher = new WatchIO({
+        delay: 100
+    });
+
+function basename(path)
+{
+   return path.split('/').reverse()[0];
+}
+
+function getImages(files, abspath)
+{
+    images = []
+    for (i = 0; i < files.length; i++)
+    {
+        file = abspath + files[0];
+        buffer = readChunk.sync(file, 0, 12);
+        if (imageType(buffer))
+        {
+            // TODO sanitize image filename
+            images.push(files[i]);
+        }
+    }
+    return images;
+}
+
 server.listen(ip_port_regex.parts(program.address)['port'],
-        ip_port_regex.parts(program.address)['ip'],
-        function(){
+        ip_port_regex.parts(program.address)['ip'], function()
+        {
             console.log("Listening on http://%s:%s",
                     server.address().address,
                     server.address().port
@@ -24,30 +55,35 @@ server.listen(ip_port_regex.parts(program.address)['port'],
         }
 );
 
-var WatchIO = require('watch.io'),
-    watcher = new WatchIO({
-        delay: 100
-    });
+watcher.watch(__dirname + static_dir + images_dir);
+app.use(express.static(__dirname + static_dir));
+//app.use(express.static(program.input));
 
-watcher.watch('./public/output/images');
-
-app.use(express.static(__dirname + '/public'));
-app.get('/', function(req, res) {
+app.get('/', function(req, res)
+{
    res.sendFile(__dirname + '/index.html');
 });
 
-io.on('connection', function (socket) {
-    var images = fs.readdirSync('./public/output/images/');
+io.on('connection', function (socket)
+{ 
+    var images_abspath = __dirname + static_dir + images_dir,
+        files = fs.readdirSync(images_abspath),
+        images = getImages(files, images_abspath);
 
-    images = _.filter(images, function(e) {
-        return (e != ".DS_Store");
+    // console.log(images); // print 3 times at start?
+    socket.emit('addImages', images, images_dir);
+
+    watcher.on('create', function (file)
+    {
+        socket.emit('addImage', basename(file), images_dir);
+    }); 
+    watcher.on('update', function (file)
+    { 
+        // TODO
     });
-
-    socket.emit('images', images);
-
-    watcher.on('change', function ( type, file, stat ) {
-        //console.log(file);
-        socket.emit('image', file.replace(/^.*[\\\/]/, ''));
+    watcher.on('remove', function (file)
+    {  
+        // TODO
     });
 
 });

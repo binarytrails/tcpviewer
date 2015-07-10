@@ -4,28 +4,34 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        $(function(){
+        $(function()
+        {
+            var currentCol = 0,
+                iosocket = io.connect(),
+                divs = [document.getElementById("left-image-hash"),
+                        document.getElementById("right-image-hash")];
 
-            var     currentCol = 0,
-                    iosocket = io.connect(),
-
-                    divs = [document.getElementById("left-image-hash"),
-                            document.getElementById("right-image-hash")];
-
-            var appendCurrent = function(e) {
+            var insertImageAtFirst = function (image_url)
+            {
                 var img = new Image();
-                img.src = "output/images/" + e;
+                img.src = image_url;
 
                 divs[currentCol].insertBefore(img,divs[currentCol].firstChild);
-
                 currentCol = (currentCol == 0) ? 1 : 0;
             };
 
-            iosocket.on('images', function(data) {
-                _.each(data, appendCurrent);
+            iosocket.on('addImages', function(images, url)
+            {
+                for (i = 0; i < images.length; i++)
+                {
+                    insertImageAtFirst(url + images[i]);
+                }
             });
 
-            iosocket.on('image', appendCurrent);
+            iosocket.on('addImage', function(image, url)
+            {
+                insertImageAtFirst(url + image);
+            });
 
         });
     </script>
@@ -38,13 +44,22 @@
     <link rel="stylesheet" href="base.css">
 
 <head>
-    <title>Snatch</title>
+    <title>Tcpflow Visualiser</title>
 </head>
 
 <body>
 <div id="header">
     <div id="menu">
-        <header>Snatch <small><small>by Quebec Team</small></small></header>
+        <header>
+            Tcpflow Visualiser
+            <small><small>
+                by
+                <a href="https://github.com/sevaivanov/tcpflow_visualiser/network/members">
+                    this
+                </a>
+                folks!
+            </small></small>
+        </header>
     </div>
 </div>
 

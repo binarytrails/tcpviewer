@@ -3,7 +3,7 @@
 /*********************************************************************************/
 	body
 	{
-		font-family: Arial, Helvetica, sans-serif;
+		font-family: 'Courier New', sans-serif;
 		
 		font-size: 1em;
 		font-weight: lighter;
@@ -14,13 +14,19 @@
 
 	a
 	{
-		text-decoration: none;
-	}
-		a:focus
-		{
-			outline: 0;
-		}
-
+        color: white; 
+        text-decoration: none;
+        text-shadow: 0 0 15px white;
+        transition: text-shadow 0.3s;
+    }
+        a:hover
+        {
+            text-shadow: none;
+        }
+        a:focus
+        {
+            outline: 0;
+        }
 /*********************************************************************************/
 /* Header                                                                        */
 /*********************************************************************************/
@@ -38,8 +44,6 @@
 		color: white;
 	}
 
-		/* Menu */
-
 		#header > #menu
 		{
 			display: table;
@@ -51,11 +55,10 @@
 			#header > #menu > header
 			{
 				display: table-cell;
-				width: 75%;
-				vertical-align: middle;
-				text-align: left;
-				padding-left: 1em;
 				font-size: 4em;
+				text-align: left;
+				vertical-align: middle;
+				padding-left: 1em;
 			}
 
 /*********************************************************************************/
