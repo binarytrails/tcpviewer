@@ -14,7 +14,6 @@ program
   .version('0.1.0')
   .usage('[options] <file ...>')
   .option('-a, --address <ip:port>', 'listen on the ip address and port', ip_port_regex.v4())
-  //.option('-i, --input <path>', 'images input directory')
   .parse(process.argv);
 
 var static_dir = "/public",
@@ -65,7 +64,6 @@ server.listen(ip_port_regex.parts(program.address)['port'],
 
 watcher.watch(__dirname + static_dir + images_dir);
 app.use(express.static(__dirname + static_dir));
-//app.use(express.static(program.input));
 
 app.get('/', function(req, res)
 {
@@ -85,10 +83,7 @@ io.on('connection', function(socket)
         images.push(basename(file));
         socket.emit('addImage', basename(file), images_dir);
     }); 
-    watcher.on('update', function(file)
-    {
-        // TODO
-    });
+    
     watcher.on('remove', function(file)
     {
         if (images.indexOf(basename(file)) != -1)
