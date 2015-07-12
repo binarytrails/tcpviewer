@@ -29,6 +29,15 @@ function basename(path)
    return path.split('/').reverse()[0];
 }
 
+function removeElementFromArray(array, element)
+{
+    var index = array.indexOf(element);
+    if (index > -1)
+    {
+        array.splice(index, 1);
+    }
+}
+
 function getImages(files, abspath)
 {
     images = []
@@ -38,7 +47,6 @@ function getImages(files, abspath)
         buffer = readChunk.sync(file, 0, 12);
         if (imageType(buffer))
         {
-            // TODO sanitize image filename
             images.push(files[i]);
         }
     }
@@ -64,26 +72,30 @@ app.get('/', function(req, res)
    res.sendFile(__dirname + '/index.html');
 });
 
-io.on('connection', function (socket)
+io.on('connection', function(socket)
 { 
     var images_abspath = __dirname + static_dir + images_dir,
         files = fs.readdirSync(images_abspath),
         images = getImages(files, images_abspath);
 
-    // console.log(images); // print 3 times at start?
     socket.emit('addImages', images, images_dir);
-
-    watcher.on('create', function (file)
+    
+    watcher.on('create', function(file)
     {
+        images.push(basename(file));
         socket.emit('addImage', basename(file), images_dir);
     }); 
-    watcher.on('update', function (file)
-    { 
+    watcher.on('update', function(file)
+    {
         // TODO
     });
-    watcher.on('remove', function (file)
-    {  
-        // TODO
+    watcher.on('remove', function(file)
+    {
+        if (images.indexOf(basename(file)) != -1)
+        {
+            removeElementFromArray(images, basename(file));
+            socket.emit('removeImage', basename(file));
+        }
     });
 
 });

@@ -8,36 +8,47 @@
         {
             var currentCol = 0,
                 iosocket = io.connect(),
-                divs = [document.getElementById("left-image-hash"),
-                        document.getElementById("right-image-hash")];
+                divs = [document.getElementById("left-image"),
+                        document.getElementById("right-image")];
 
-            var insertImageAtFirst = function (image_url)
+            function insertImageAtFirst(filename, url)
             {
                 var img = new Image();
-                img.src = image_url;
+                img.id = filename;
+                img.src = url + filename;
 
-                divs[currentCol].insertBefore(img,divs[currentCol].firstChild);
+                divs[currentCol].insertBefore(img, divs[currentCol].firstChild);
                 currentCol = (currentCol == 0) ? 1 : 0;
             };
 
-            iosocket.on('addImages', function(images, url)
+            function removeImage(filename)
             {
-                for (i = 0; i < images.length; i++)
+                document.getElementById(filename).remove();
+            };
+
+            iosocket.on('addImages', function(filenames, url)
+            {
+                for (i = 0; i < filenames.length; i++)
                 {
-                    insertImageAtFirst(url + images[i]);
+                    insertImageAtFirst(filenames[i], url);
                 }
             });
 
-            iosocket.on('addImage', function(image, url)
+            iosocket.on('addImage', function(filename, url)
             {
-                insertImageAtFirst(url + image);
+                insertImageAtFirst(filename, url);
+            });
+
+            iosocket.on('removeImage', function(filename)
+            {
+                removeImage(filename);
             });
 
         });
     </script>
     <meta charset="UTF-8">
-    <meta name="description" content="Snatch HackPrinceton 2015">
-    <meta name="keywords" content="Snatch HackPrinceton 2015">
+    <meta name="description" content="Tcpflow Visualiser">
+    <meta name="keywords" content="Tcpflow Visualiser">
     <meta name="author" content="Vsevolod Ivanov">
     <meta name="author" content="Andrei Savin">
 
@@ -48,26 +59,25 @@
 </head>
 
 <body>
-<div id="header">
-    <div id="menu">
-        <header>
-            Tcpflow Visualiser
-            <small><small>
-                by
-                <a href="https://github.com/sevaivanov/tcpflow_visualiser/network/members">
-                    this
-                </a>
-                folks!
-            </small></small>
-        </header>
+    <div id="header">
+        <div id="menu">
+            <header>
+                Tcpflow Visualiser
+                <small><small>
+                    by
+                    <a href="https://github.com/sevaivanov/tcpflow_visualiser/network/members">
+                        this
+                    </a>
+                    folks!
+                </small></small>
+            </header>
+        </div>
     </div>
-</div>
 
-<!-- Content -->
-<div id="content">
-    <div id="left-image-hash" class='sides'></div>
-    <div id="right-image-hash" class='sides'></div>
-</div>
-
+    <!-- Content -->
+    <div id="content">
+        <div id="left-image" class='sides'></div>
+        <div id="right-image" class='sides'></div>
+    </div>
 </body>
 </html>
