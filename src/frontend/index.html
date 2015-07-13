@@ -1,24 +1,35 @@
 <html>
 <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         $(function()
         {
-            var currentCol = 0,
+            var currentColumn = 0,
                 iosocket = io.connect(),
-                divs = [document.getElementById("left-image"),
-                        document.getElementById("right-image")];
+                columns = [document.getElementById("left-column"),
+                        document.getElementById("right-column")];
+
+            function buildNewImageElement(filename, url)
+            { 
+                var image = new Image();
+                image.id = filename;
+                image.src = url + filename;
+
+                var container = document.createElement("div");
+                container.className = "container";
+                container.appendChild(image);
+
+                return container;
+            }
 
             function insertImageAtFirst(filename, url)
             {
-                var img = new Image();
-                img.id = filename;
-                img.src = url + filename;
+                newElement = buildNewImageElement(filename, url);
+                referenceElement = columns[currentColumn].firstChild;
 
-                divs[currentCol].insertBefore(img, divs[currentCol].firstChild);
-                currentCol = (currentCol == 0) ? 1 : 0;
+                columns[currentColumn].insertBefore(newElement, referenceElement);
+                currentColumn = (currentColumn == 0) ? 1 : 0;
             };
 
             function removeImage(filename)
@@ -76,8 +87,16 @@
 
     <!-- Content -->
     <div id="content">
-        <div id="left-image" class='sides'></div>
-        <div id="right-image" class='sides'></div>
+        <div id="left-column" class='sides'>
+            <div class="container">
+
+             </div>
+        </div>
+        <div id="right-column" class='sides'> 
+            <div class="container">
+
+             </div>
+        </div>
     </div>
 </body>
 </html>
