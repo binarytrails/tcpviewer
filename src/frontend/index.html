@@ -10,7 +10,7 @@
                 columns = [document.getElementById("left-column"),
                         document.getElementById("right-column")];
 
-            function buildNewImageElement(filename, url)
+            function buildNewImageContainer(filename, url)
             { 
                 var image = new Image();
                 image.id = filename;
@@ -25,10 +25,10 @@
 
             function insertImageAtFirst(filename, url)
             {
-                newElement = buildNewImageElement(filename, url);
+                newContainer = buildNewImageContainer(filename, url);
                 referenceElement = columns[currentColumn].firstChild;
 
-                columns[currentColumn].insertBefore(newElement, referenceElement);
+                columns[currentColumn].insertBefore(newContainer, referenceElement);
                 currentColumn = (currentColumn == 0) ? 1 : 0;
             };
 
@@ -77,26 +77,17 @@
                 <small><small>
                     by
                     <a href="https://github.com/sevaivanov/tcpflow_visualiser/network/members">
-                        this
+                        these
                     </a>
                     folks!
                 </small></small>
             </header>
         </div>
     </div>
-
-    <!-- Content -->
+    
     <div id="content">
-        <div id="left-column" class='sides'>
-            <div class="container">
-
-             </div>
-        </div>
-        <div id="right-column" class='sides'> 
-            <div class="container">
-
-             </div>
-        </div>
+        <div id="left-column" class='sides'></div>
+        <div id="right-column" class='sides'></div>
     </div>
 </body>
 </html>
