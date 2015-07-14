@@ -1,6 +1,6 @@
-/*********************************************************************************/
-/* Basic                                                                         */
-/*********************************************************************************/
+/*****************************************************************************/
+/* Basic                                                                     */
+/*****************************************************************************/
 	body
 	{
 		font-family: 'Courier New', sans-serif;
@@ -27,14 +27,14 @@
         {
             outline: 0;
         }
-/*********************************************************************************/
-/* Header                                                                        */
-/*********************************************************************************/
+/*****************************************************************************/
+/* Head                                                                      */
+/*****************************************************************************/
 	#header
 	{
 		position: absolute;
+		height: 10em;
 		width: 100%;
-		height: 24em;
 		
 		top: 0;
 		right: 0;
@@ -49,21 +49,21 @@
 			display: table;
 			position: relative;
 			width: 100%;
-			height: 12em;
+			height: 100%;
 			background: #0C090A;
 		}
 			#header > #menu > header
 			{
 				display: table-cell;
-				font-size: 4em;
+                font-size: 4em;
 				text-align: left;
 				vertical-align: middle;
 				padding-left: 1em;
 			}
 
-/*********************************************************************************/
-/* Content                                                                        */
-/*********************************************************************************/
+/*****************************************************************************/
+/* Content                                                                   */
+/*****************************************************************************/
 	#content
 	{
 		position: absolute;
@@ -84,18 +84,60 @@
 		margin: 1em 1%;
 	}
 
+    #content a
+    {
+        text-shadow: none;
+    }
+
 		#content > div[id*="left-"]
 		{
+            height: auto;
 			float: left;
 		}
 
 		#content > div[id*="right-"]
 		{
+            height: auto;
 			float: right;
 		}
 
-			#content img
-			{
-				width: 100%;
-				margin: 2em auto;
-			}
+            #content div[class*="container-"]
+            {
+                height: auto;
+                background: black;
+                opacity: 0.5;
+            }
+        
+                #content div.frontImage
+                {
+                    height: auto;
+                    margin: 2em auto;
+                }
+
+                        #content div.frontImage img
+                        {
+                            width: 100%;
+                        }
+
+                #content div.backData
+                {
+                    position: absolute;
+                    width: 100%;
+                    z-index: -1;
+                    opacity: 0.7;
+
+                    transform: rotateY(180deg);
+                    background: black;
+                }
+
+                        #content div.backData dl
+                        {
+                            color: white;
+                            margin: 1em;
+                        }
+
+                            #content div.backData dd
+                            {
+                                text-align: right;
+                            }
+

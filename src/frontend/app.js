@@ -8,20 +8,30 @@ var fs = require('fs'),
     _ = require("underscore"),
     path = require('path'),
     readChunk = require('read-chunk'),
-    imageType = require('image-type');
+    imageType = require('image-type'),
+    sqlite = require('sqlite3').verbose();
 
 program
   .version('0.1.0')
   .usage('[options] <file ...>')
   .option('-a, --address <ip:port>', 'listen on the ip address and port', ip_port_regex.v4())
+  .option('-d, --database <path>', 'database path')
   .parse(process.argv);
 
-var static_dir = "/public",
+if (!program.address || !program.database)
+{
+    console.log(program.help());
+    process.exit(0);
+}
+
+var database = new sqlite.Database(program.database);
+    static_dir = "/public",
     images_dir = "/output/images/",
+    watched_dir = __dirname + static_dir + images_dir,
     WatchIO = require('watch.io'),
     watcher = new WatchIO({
         delay: 100
-    });
+    })
 
 function basename(path)
 {
@@ -62,7 +72,7 @@ server.listen(ip_port_regex.parts(program.address)['port'],
         }
 );
 
-watcher.watch(__dirname + static_dir + images_dir);
+watcher.watch(watched_dir);
 app.use(express.static(__dirname + static_dir));
 
 app.get('/', function(req, res)
@@ -80,8 +90,8 @@ io.on('connection', function(socket)
     
     watcher.on('create', function(file)
     {
-        images.push(basename(file));
-        socket.emit('addImage', basename(file), images_dir);
+        images.push(basename(filename));
+        socket.emit('addImage', basename(filename), images_dir, data);
     }); 
     
     watcher.on('remove', function(file)
@@ -90,9 +100,23 @@ io.on('connection', function(socket)
         {
             removeElementFromArray(images, basename(file));
             socket.emit('removeImage', basename(file));
+            // keep record in the database
         }
+    });
+
+    socket.on("getData", function(filename)
+    { 
+        hash = filename.substr(0, filename.lastIndexOf("."));
+
+        var sqlQuery = "SELECT * FROM Images WHERE HASH = '" + hash  + "';";
+        sock = this;
+        
+        data = database.get(sqlQuery, function(error, row)
+        {
+            sock.emit('setBackData', filename, row);
+        });
     });
 
 });
 
-watcher.close('./data');
+watcher.close(watched_dir);
