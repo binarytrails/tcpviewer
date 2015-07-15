@@ -123,9 +123,10 @@
                     position: absolute;
                     width: 100%;
                     
-                    opacity: 0.7;
+                    opacity: 0.6;
                     background: black;
-                    
+                   
+                    z-index: 1;
                     backface-visibility: hidden;
                     transform: rotateY(180deg);
                     transition: all 1s;
