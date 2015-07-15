@@ -54,18 +54,13 @@
                 isFlipped = front.style.transform == flipped;
                 if (isFlipped)
                 {
-                    zIndex = -1;
                     degrees = 180;
-                    opacity = 0.7;
                 }
                 else
                 {
-                    zIndex = 1;
                     degrees = 0;
-                    opacity = 1;
                 }
                 back.style.transform = flipped.replace("0", degrees);
-                back.style.zIndex = zIndex
             }
 
             function buildCardFace(content, isfront, cardId, cardFace)
