@@ -57,14 +57,14 @@ class Main():
     directory_observer = Observer()
     image_extraction_queue = Queue.Queue()
     extraction_interval = None
-    shell_mode = True
 
     min_width = 500
     min_height = 500
 
     ipv4_regex = re.compile('[0-9]+(?:\.[0-9]+){3}')
 
-    def __init__(self, interface, output, clean):
+    def __init__(self, interface, output, clean, verbose=False):
+        self.verbose = verbose
         self.output_dir = output
         self.raw_dir = os.path.join(output, 'raw')
         self.images_dir = os.path.join(output, 'images')
@@ -112,6 +112,7 @@ class Main():
             DIP TEXT
         );
         """
+        # TODO check if exists
         self.execute_sql_command_on_sqlite_db(command)
 
     def insert_to_sqlite_db(self, filename, file_uuid, src, dst):
@@ -213,7 +214,7 @@ class Main():
 
                             self.insert_to_sqlite_db(filepath, file_uuid, src, dst)
 
-                            if self.shell_mode:
+                            if self.verbose:
                                 print src + " --> " + dst
 
                             # overwrites, otherwise use .copy2()
