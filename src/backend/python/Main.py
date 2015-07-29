@@ -112,23 +112,23 @@ class Main():
         # @TODO check if exists
         self.execute_sql_command_on_sqlite_db(command)
 
-    def insert_to_sqlite_db(self, filename, file_uuid, src, dst):
-        macs = self.get_image_mac_addrs_from_report(filename)
-        ips = re.findall(self.ipv4_regex, filename)
-
-        command = ("INSERT INTO IMAGES Values(" +
-            self.quotes(file_uuid) + "," +
-            self.quotes(datetime.now()) + "," +
-            self.quotes(macs[0]) + "," +
-            self.quotes(macs[1]) + "," +
-            self.quotes(ips[0]) + "," +
-            self.quotes(ips[1]) + ");"
-        )
-        self.execute_sql_command_on_sqlite_db(command)
-
-    def quotes(self, data):
+    def add_quotes(self, data):
         return "'" + str(data) + "'"
 
+    def insert_to_sqlite_db(self, filepath, file_uuid, src, dst):
+        macs = self.get_tcpflow_report_mac_addresses(filepath)
+        ips = re.findall(self.ipv4_regex, filepath)
+
+        command = ("INSERT INTO IMAGES Values(" +
+            self.add_quotes(file_uuid) + "," +
+            self.add_quotes(datetime.now()) + "," +
+            self.add_quotes(macs[0]) + "," +
+            self.add_quotes(macs[1]) + "," +
+            self.add_quotes(ips[0]) + "," +
+            self.add_quotes(ips[1]) + ");"
+        )
+        self.execute_sql_command_on_sqlite_db(command)
+    
     def start_loud_subprocess(self, command):
         return subprocess.Popen(command,
             shell = True,
@@ -156,7 +156,7 @@ class Main():
         thread.daemon = as_daemon
         thread.start()
 
-    def get_image_mac_addrs_from_report(self, filename):
+    def get_tcpflow_report_mac_addresses(self, filename):
         '''
         XML report revelent structure
 
