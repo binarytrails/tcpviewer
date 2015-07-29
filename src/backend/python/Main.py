@@ -95,16 +95,13 @@ class Main():
         connection = lite.connect(self.db_path)
         with connection:
             cursor = connection.cursor()
-
             cursor.execute(command)
             data = cursor.fetchone()
-
         return data 
 
     def init_sqlite_db(self):
-        command = """CREATE TABLE Images(
+        command = """CREATE TABLE IMAGES(
             HASH TEXT,
-            ABSPATH TEXT,
             TIMESTAMP DATE,
             SMAC TEXT,
             DMAC TEXT,
@@ -112,22 +109,21 @@ class Main():
             DIP TEXT
         );
         """
-        # TODO check if exists
+        # @TODO check if exists
         self.execute_sql_command_on_sqlite_db(command)
 
     def insert_to_sqlite_db(self, filename, file_uuid, src, dst):
         macs = self.get_image_mac_addrs_from_report(filename)
         ips = re.findall(self.ipv4_regex, filename)
 
-        command = ("INSERT INTO Images Values(" +
-        self.quotes(file_uuid) + "," +
-        self.quotes(dst) + "," +
-        self.quotes(datetime.now()) + "," +
-        self.quotes(macs[0]) + "," +
-        self.quotes(macs[1]) + "," +
-        self.quotes(ips[0]) + "," +
-        self.quotes(ips[1]) + ");")
-
+        command = ("INSERT INTO IMAGES Values(" +
+            self.quotes(file_uuid) + "," +
+            self.quotes(datetime.now()) + "," +
+            self.quotes(macs[0]) + "," +
+            self.quotes(macs[1]) + "," +
+            self.quotes(ips[0]) + "," +
+            self.quotes(ips[1]) + ");"
+        )
         self.execute_sql_command_on_sqlite_db(command)
 
     def quotes(self, data):
