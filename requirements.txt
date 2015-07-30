@@ -1,3 +1,4 @@
 # pip -r requirements.txt
+docopt
 watchdog
 BeautifulSoup4
