@@ -23,8 +23,6 @@ def main(argv):
         print error
         sys.exit(2)
 
-    print opts, args
-
     for opt, arg in opts:
         if opt == '-h':
             print help_message

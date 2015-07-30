@@ -69,7 +69,9 @@ class Main():
         self.raw_dir = os.path.join(output, 'raw')
         self.images_dir = os.path.join(output, 'images')
 
-        self.init_directories(clean)
+        if clean: self.clean_workspace()
+
+        self.init_directories()
         self.start_output_dir_listener()
 
         self.db_path = os.path.join(output, 'database.db')
@@ -78,11 +80,13 @@ class Main():
         self.start_threads(True)
         self.tcpflow_as_main_process(interface)
 
-    def init_directories(self, clean):
-        if os.path.exists(self.output_dir) == False:
-            os.mkdir(self.output_dir)
-        elif clean:
+    def clean_workspace(self):
+        if os.path.exists(self.output_dir): 
             shutil.rmtree(self.output_dir)
+            os.mkdir(self.output_dir)
+
+    def init_directories(self):
+        if os.path.exists(self.output_dir) == False:
             os.mkdir(self.output_dir)
 
         if os.path.exists(self.raw_dir) == False:
@@ -100,7 +104,7 @@ class Main():
         return data 
 
     def init_sqlite_db(self):
-        command = """CREATE TABLE IMAGES(
+        command = """CREATE TABLE IF NOT EXISTS IMAGES(
             HASH TEXT,
             TIMESTAMP DATE,
             SMAC TEXT,
@@ -210,15 +214,14 @@ class Main():
 
                             self.insert_to_sqlite_db(filepath, file_uuid, src, dst)
 
-                            if self.verbose:
-                                print src + " --> " + dst
+                            if self.verbose: print src + " --> " + dst
 
                             # overwrites, otherwise use .copy2()
                             shutil.move(src, dst)
                             break
 
                     except IOError as error:
-                        print error
+                        if self.verbose: print error
                         sleep(0.2)
 
             except Queue.Empty:
@@ -230,13 +233,13 @@ class Main():
             """
             self.xml_report_path = os.path.join(self.raw_dir, 'report.xml')
             tcpflow = 'sudo tcpflow -i ' + interface + ' -e http -o ' + self.raw_dir
-            
+
             try:
                 proc = self.start_loud_subprocess(tcpflow)
 
                 while proc.poll() is None:
-                    print proc.stdout.readline()
+                    if self.verbose: print proc.stdout.readline()
 
             except KeyboardInterrupt:
-                print "Got Keyboard interrupt. Stopping..."
+                if self.verbose: print "Got Keyboard interrupt. Stopping.."
 
