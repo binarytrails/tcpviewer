@@ -1,9 +1,9 @@
 #!/usr/bin/python2.7
 
-"""Tcpflow Visualiser.
+"""TcpViewer.
 
 Usage:
-    tcp_visualiser.py [-v] (-i) <interface> [-c] (-o) <directory>
+    tcpviewer.py [-v] (-i) <interface> [-c] (-o) <directory>
 
 Opitons:
     -v, --verbose       Show relevant print's during program execution.
@@ -13,9 +13,13 @@ Opitons:
 """
 
 from docopt import docopt
-from Main import Main
+from TcpViewer import TcpViewer
 
 if __name__ == '__main__':
-    args = docopt(__doc__, version='Tcpflow Visualiser 0.1')
-    Main(args["<interface>"], args["<directory>"], args["--clean"], args["--verbose"])
+    args = docopt(__doc__, version='TcpViewer 0.1')
+    TcpViewer(args["<interface>"],
+        args["<directory>"],
+        args["--clean"],
+        args["--verbose"]
+    )
 

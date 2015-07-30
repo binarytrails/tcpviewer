@@ -25,11 +25,9 @@ elif runs_on() == "arch":
     from BeautifulSoup import BeautifulSoup as Soup
 
 class OutputDirectoryListener(FileSystemEventHandler):
-    """Private class"""
-
+    
     # http://pillow.readthedocs.org/en/latest/handbook/image-file-formats.html
-    # gif crashes
-    image_extensions = ['jpeg', 'jpg']
+    image_extensions = ['jpeg', 'jpg'] # gif crashes
 
     def __init__(self, observer, image_extraction_queue):
         self.image_extraction_queue = image_extraction_queue
@@ -52,15 +50,13 @@ class OutputDirectoryListener(FileSystemEventHandler):
     def stop_observer(self):
         self.directory_observer.stop()
 
-class Main():
+class TcpViewer():
 
     directory_observer = Observer()
     image_extraction_queue = Queue.Queue()
     extraction_interval = None
-
     min_width = 500
     min_height = 500
-
     ipv4_regex = re.compile('[0-9]+(?:\.[0-9]+){3}')
 
     def __init__(self, interface, output, clean, verbose=False):
@@ -113,7 +109,6 @@ class Main():
             DIP TEXT
         );
         """
-        # @TODO check if exists
         self.execute_sql_command_on_sqlite_db(command)
 
     def add_quotes(self, data):
@@ -175,7 +170,6 @@ class Main():
                 filesize
         '''
         root_filename = filename[0:filename.rfind('-HTTPBODY-')]
-
         smac = None
         dmac = None
 
@@ -192,7 +186,6 @@ class Main():
                 if tcpflow:
                         smac = str(tcpflow['mac_saddr'])
                         dmac = str(tcpflow['mac_daddr'])
-
         return [smac, dmac]
 
     def image_extraction_queue_listener(self):
@@ -232,7 +225,7 @@ class Main():
                 tcpflow related variables and the commmand for main process.
             """
             self.xml_report_path = os.path.join(self.raw_dir, 'report.xml')
-            tcpflow = 'sudo tcpflow -i ' + interface + ' -e http -o ' + self.raw_dir
+            tcpflow = 'tcpflow -i ' + interface + ' -e http -o ' + self.raw_dir
 
             try:
                 proc = self.start_loud_subprocess(tcpflow)
