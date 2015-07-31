@@ -1,22 +1,20 @@
 """
-    Main class wrapping network interceptors tools.
+    The backend where we:
+        wrap the network interceptors tools;
+        launch the frontends.
 """
 
 import platform
-def runs_on():
-    return platform.linux_distribution()[0]
+def runs_on(): return platform.linux_distribution()[0]
 
-import os, re, shutil, subprocess, Queue
-from datetime import datetime
-from threading import Thread
-from time import sleep
-
-import uuid
+import os, traceback, shutil, subprocess, Queue, re, uuid 
 import sqlite3 as lite
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
-
+from datetime import datetime
+from threading import Thread
+from time import sleep
 from PIL import Image
 
 if runs_on() == "debian":
@@ -41,11 +39,8 @@ class OutputDirectoryListener(FileSystemEventHandler):
             if extension in self.image_extensions:
                 self.image_extraction_queue.put(event.src_path)
 
-    def on_modified(self, event):
-        pass
-
-    def on_deleted(self, event):
-        pass
+    def on_modified(self, event): pass
+    def on_deleted(self, event): pass
 
     def stop_observer(self):
         self.directory_observer.stop()
@@ -54,14 +49,20 @@ class TcpViewer():
 
     directory_observer = Observer()
     image_extraction_queue = Queue.Queue()
+    
     extraction_interval = None
     min_width = 500
     min_height = 500
+    
     ipv4_regex = re.compile('[0-9]+(?:\.[0-9]+){3}')
 
-    def __init__(self, interface, output, clean, verbose=False):
+    def __init__(self, interface, frontend, address, output, clean, verbose=False):
         self.verbose = verbose
+        
+        if frontend and address:
+            output, frontend_command = self.handle_frontend(frontend, address)
         self.output_dir = output
+        
         self.raw_dir = os.path.join(output, 'raw')
         self.images_dir = os.path.join(output, 'images')
 
@@ -70,11 +71,30 @@ class TcpViewer():
         self.init_directories()
         self.start_output_dir_listener()
 
-        self.db_path = os.path.join(output, 'database.db')
         self.init_sqlite_db()
+
+        if frontend_command:
+            print "Starting the %s frontend at http://%s." % (frontend, address)
+            self.start_subprocess(frontend_command) # needs db
 
         self.start_threads(True)
         self.tcpflow_as_main_process(interface)
+
+    def handle_frontend(self, frontend, address):
+        output_location = command = None
+
+        if frontend == "nodejs":
+            output_location = os.path.join(os.getcwd(), 'frontend/nodejs/public/')
+            output_dir = os.path.join(output_location, 'output/')
+            self.db_path = os.path.join(output_dir, 'database.db')
+            command = "nodejs frontend/nodejs/app.js -a %s -d %s" % (address, self.db_path)
+        else:
+            raise ValueError("The frontend %s was not found at its location." % frontend)
+        
+        if os.path.exists(output_location) == False:
+            raise ValueError("The %s output location %s does not exist." % (frontend, output_location))
+        
+        return output_dir, command
 
     def clean_workspace(self):
         if os.path.exists(self.output_dir): 
@@ -128,9 +148,9 @@ class TcpViewer():
         )
         self.execute_sql_command_on_sqlite_db(command)
     
-    def start_loud_subprocess(self, command):
+    def start_subprocess(self, command):
         return subprocess.Popen(command,
-            shell = True,
+            shell = self.verbose,
             stdout = subprocess.PIPE, 
             stderr = subprocess.STDOUT
         )
@@ -149,7 +169,7 @@ class TcpViewer():
 
     def start_threads(self, as_daemon):
         """
-            as_daemon == True: quits without waiting for the thread to finish.
+            if as_daemon: quits without waiting for the threads to finish.
         """
         thread = Thread(target = self.image_extraction_queue_listener, args=[])
         thread.daemon = as_daemon
@@ -192,33 +212,28 @@ class TcpViewer():
         while True:
             try:
                 filepath = self.image_extraction_queue.get()
+                image = Image.open(filepath)
+                width, height = image.size
 
-                while True:
-                    try:
-                        image = Image.open(filepath)
-                        width, height = image.size
+                if width < self.min_width or height < self.min_height:
+                    continue
 
-                        if width > self.min_width and height > self.min_height:
-                            
-                            filename = filepath[filepath.rfind('/') + 1:]
-                            file_uuid = str(uuid.uuid4())
-                            src = os.path.abspath(os.path.join(self.raw_dir, filename))
-                            dst = os.path.abspath(os.path.join(self.images_dir, file_uuid + ".jpg"))
+                filename = filepath[filepath.rfind('/') + 1:]
+                file_uuid = str(uuid.uuid4())
+                src = os.path.abspath(os.path.join(self.raw_dir, filename))
+                dst = os.path.abspath(os.path.join(self.images_dir, file_uuid + ".jpg"))
 
-                            self.insert_to_sqlite_db(filepath, file_uuid, src, dst)
+                self.insert_to_sqlite_db(filepath, file_uuid, src, dst)
 
-                            if self.verbose: print src + " --> " + dst
+                if self.verbose:
+                    print "Got an image higher than %sx%s minimum. Moving %s --> %s." % (
+                        self.min_width, self.min_height, src,  dst)
 
-                            # overwrites, otherwise use .copy2()
-                            shutil.move(src, dst)
-                            break
+                # overwrites existing, otherwise use .copy2()
+                shutil.move(src, dst)
 
-                    except IOError as error:
-                        if self.verbose: print error
-                        sleep(0.2)
-
-            except Queue.Empty:
-                pass
+            except (Queue.Empty, IOError) as e:
+                traceback.print_exc()
 
     def tcpflow_as_main_process(self, interface):
             """
@@ -228,11 +243,11 @@ class TcpViewer():
             tcpflow = 'tcpflow -i ' + interface + ' -e http -o ' + self.raw_dir
 
             try:
-                proc = self.start_loud_subprocess(tcpflow)
+                proc = self.start_subprocess(tcpflow)
 
                 while proc.poll() is None:
                     if self.verbose: print proc.stdout.readline()
 
             except KeyboardInterrupt:
-                if self.verbose: print "Got Keyboard interrupt. Stopping.."
+                print "Got Keyboard interrupt. Stopping.."
 
