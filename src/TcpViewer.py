@@ -1,8 +1,8 @@
-"""
+'''
     The backend where we:
         wrap the network interceptors tools;
         launch the frontends.
-"""
+'''
 
 import platform
 def runs_on(): return platform.linux_distribution()[0]
@@ -17,9 +17,9 @@ from threading import Thread
 from time import sleep
 from PIL import Image
 
-if runs_on() == "debian":
+if runs_on() == 'debian':
     from bs4 import BeautifulSoup as Soup
-elif runs_on() == "arch":
+elif runs_on() == 'arch':
     from BeautifulSoup import BeautifulSoup as Soup
 
 class OutputDirectoryListener(FileSystemEventHandler):
@@ -61,6 +61,8 @@ class TcpViewer():
         
         if frontend and address:
             output, frontend_command = self.handle_frontend(frontend, address)
+        else:
+            self.db_path = os.path.join(output, 'database.db')
         self.output_dir = output
         
         self.raw_dir = os.path.join(output, 'raw')
@@ -73,8 +75,8 @@ class TcpViewer():
 
         self.init_sqlite_db()
 
-        if frontend_command:
-            print "Starting the %s frontend at http://%s." % (frontend, address)
+        if frontend:
+            print 'Starting the %s frontend at http://%s.' % (frontend, address)
             self.start_subprocess(frontend_command) # needs db
 
         self.start_threads(True)
@@ -83,16 +85,16 @@ class TcpViewer():
     def handle_frontend(self, frontend, address):
         output_location = command = None
 
-        if frontend == "nodejs":
+        if frontend == 'nodejs':
             output_location = os.path.join(os.getcwd(), 'frontend/nodejs/public/')
             output_dir = os.path.join(output_location, 'output/')
             self.db_path = os.path.join(output_dir, 'database.db')
-            command = "nodejs frontend/nodejs/app.js -a %s -d %s" % (address, self.db_path)
+            command = 'nodejs frontend/nodejs/app.js -a %s -d %s' % (address, self.db_path)
         else:
-            raise ValueError("The frontend %s was not found at its location." % frontend)
+            raise ValueError('The frontend %s was not found at its location.' % frontend)
         
         if os.path.exists(output_location) == False:
-            raise ValueError("The %s output location %s does not exist." % (frontend, output_location))
+            raise ValueError('The %s output location %s does not exist.' % (frontend, output_location))
         
         return output_dir, command
 
@@ -120,7 +122,7 @@ class TcpViewer():
         return data 
 
     def init_sqlite_db(self):
-        command = """CREATE TABLE IF NOT EXISTS IMAGES(
+        command = '''CREATE TABLE IF NOT EXISTS IMAGES(
             HASH TEXT,
             TIMESTAMP DATE,
             SMAC TEXT,
@@ -128,7 +130,7 @@ class TcpViewer():
             SIP TEXT,
             DIP TEXT
         );
-        """
+        '''
         self.execute_sql_command_on_sqlite_db(command)
 
     def add_quotes(self, data):
@@ -138,13 +140,13 @@ class TcpViewer():
         macs = self.get_tcpflow_report_mac_addresses(filepath)
         ips = re.findall(self.ipv4_regex, filepath)
 
-        command = ("INSERT INTO IMAGES Values(" +
-            self.add_quotes(file_uuid) + "," +
-            self.add_quotes(datetime.now()) + "," +
-            self.add_quotes(macs[0]) + "," +
-            self.add_quotes(macs[1]) + "," +
-            self.add_quotes(ips[0]) + "," +
-            self.add_quotes(ips[1]) + ");"
+        command = ('INSERT INTO IMAGES Values(' +
+            self.add_quotes(file_uuid) + ',' +
+            self.add_quotes(datetime.now()) + ',' +
+            self.add_quotes(macs[0]) + ',' +
+            self.add_quotes(macs[1]) + ',' +
+            self.add_quotes(ips[0]) + ',' +
+            self.add_quotes(ips[1]) + ');'
         )
         self.execute_sql_command_on_sqlite_db(command)
     
@@ -168,9 +170,9 @@ class TcpViewer():
         self.directory_observer.start()
 
     def start_threads(self, as_daemon):
-        """
+        '''
             if as_daemon: quits without waiting for the threads to finish.
-        """
+        '''
         thread = Thread(target = self.image_extraction_queue_listener, args=[])
         thread.daemon = as_daemon
         thread.start()
@@ -195,7 +197,7 @@ class TcpViewer():
 
         with open(self.xml_report_path) as report:
             handler = report.read()
-            soup = Soup(handler, "lxml")
+            soup = Soup(handler, 'lxml')
 
         for fileobject in soup.findAll('fileobject'):
             filename = fileobject.find('filename')
@@ -221,12 +223,12 @@ class TcpViewer():
                 filename = filepath[filepath.rfind('/') + 1:]
                 file_uuid = str(uuid.uuid4())
                 src = os.path.abspath(os.path.join(self.raw_dir, filename))
-                dst = os.path.abspath(os.path.join(self.images_dir, file_uuid + ".jpg"))
+                dst = os.path.abspath(os.path.join(self.images_dir, file_uuid + '.jpg'))
 
                 self.insert_to_sqlite_db(filepath, file_uuid, src, dst)
 
                 if self.verbose:
-                    print "Got an image higher than %sx%s minimum. Moving %s --> %s." % (
+                    print 'Got an image higher than %sx%s minimum. Moving %s --> %s.' % (
                         self.min_width, self.min_height, src,  dst)
 
                 # overwrites existing, otherwise use .copy2()
@@ -236,9 +238,9 @@ class TcpViewer():
                 traceback.print_exc()
 
     def tcpflow_as_main_process(self, interface):
-            """
+            '''
                 tcpflow related variables and the commmand for main process.
-            """
+            '''
             self.xml_report_path = os.path.join(self.raw_dir, 'report.xml')
             tcpflow = 'tcpflow -i ' + interface + ' -e http -o ' + self.raw_dir
 
@@ -249,5 +251,5 @@ class TcpViewer():
                     if self.verbose: print proc.stdout.readline()
 
             except KeyboardInterrupt:
-                print "Got Keyboard interrupt. Stopping.."
+                print 'Got Keyboard interrupt. Stopping..'
 
