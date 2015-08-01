@@ -113,9 +113,9 @@
                 return container;
             }
 
-            function insertImageAtFirst(filename, url, data)
+            function insertImageAtFirst(filename, url)
             {
-                newContainer = buildNewImageContainer(filename, url, data);
+                newContainer = buildNewImageContainer(filename, url);
                 referenceElement = columns[currentColumn].firstChild;
 
                 columns[currentColumn].insertBefore(newContainer, referenceElement);
@@ -135,10 +135,9 @@
                 }
             });
 
-            iosocket.on('addImage', function(filename, url, data)
+            iosocket.on('addImage', function(filename, url)
             {
-                console.log("addImage called");
-                insertImageAtFirst(filename, url, data);
+                insertImageAtFirst(filename, url);
             });
 
             iosocket.on('removeImage', function(filename)

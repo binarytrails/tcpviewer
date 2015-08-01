@@ -90,8 +90,8 @@ io.on('connection', function(socket)
     
     watcher.on('create', function(file)
     {
-        images.push(basename(filename));
-        socket.emit('addImage', basename(filename), images_dir, data);
+        images.push(basename(file));
+        socket.emit('addImage', basename(file), images_dir);
     }); 
     
     watcher.on('remove', function(file)
@@ -100,7 +100,7 @@ io.on('connection', function(socket)
         {
             removeElementFromArray(images, basename(file));
             socket.emit('removeImage', basename(file));
-            // keep record in the database
+            // TODO keep or erase the record from the database?
         }
     });
 
@@ -120,3 +120,4 @@ io.on('connection', function(socket)
 });
 
 watcher.close(watched_dir);
+
