@@ -1,5 +1,6 @@
 # General
     tcpflow
+    nodejs
 # Arch
 	python2-imaging
 	python2-beautifulsoup4

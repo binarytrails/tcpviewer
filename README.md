@@ -1,6 +1,6 @@
 # TCP Viewer
 
-We wrap tcpflow in the backend to arrange data for dynamic visualisation for the frontend.
+We wrap *tcpflow* in the backend to arrange data for dynamic visualisation for the frontend.
 
 Our goal is to raise awareness about the quantity of personal information available to everyone connected to a network. We accomplish this using a fun and interactive image board.
 
@@ -8,7 +8,13 @@ The majority of people don't understand the network traffic. Knowing the OSI mod
 
 The code base was written during HackPrinceton 2015.
 
-## Tcpflow
+## Setup
+
+Install the system dependecies from *sys_dependencies.txt* and the python ones with:
+
+    pip install -r requirements.txt --user
+
+### Tcpflow
 
 In order to capture the network traffic as a normal user, you need to allow *tcpflow* to capture raw packets and give it the permissions to manipulate the network interfaces. Of course, we need a group dedicated for this purpose to limit this capability to only a certain group of users.
 
@@ -21,4 +27,20 @@ In order to capture the network traffic as a normal user, you need to allow *tcp
     exit
 
 *Inspired from tcpdump Peter Nixon [article](http://peternixon.net/news/2012/01/28/configure-tcpdump-work-non-root-user-opensuse-using-file-system-capabilities/) and tested on Debian Jessie.*
+
+### Launching
+
+Go into *src/* and choose between running with an available *nodejs* frontend:
+
+    ./run.py -vi wlan0 -f nodejs -a 127.0.0.1:8000
+
+or without a frontend by using only an output directory:
+
+    ./run.py -vi wlan0 -h output/
+    
+for more options:
+
+    ./run.py --help
+
+**You have to be aware that due to the *tcpflow* latency it takes around 40 seconds between the time someone sees the image over the unencrypted HTTP traffic and the time it is extracted by *tcpflow*. The positive side to this issue is that the *tcpflow* has always a perfect image reconstruction that was lacking with the other network interceptor tools.**
 
