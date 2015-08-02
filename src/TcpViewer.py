@@ -60,20 +60,19 @@ class TcpViewer():
         self.verbose = verbose
         
         if frontend and address:
-            output, frontend_command = self.handle_frontend(frontend, address)
+            output, frontend_command = self.arrange_frontend(frontend, address)
         else:
             self.db_path = os.path.join(output, 'database.db')
-        self.output_dir = output
         
+        self.output_dir = output 
         self.raw_dir = os.path.join(output, 'raw')
         self.images_dir = os.path.join(output, 'images')
 
         if clean: self.clean_workspace()
 
         self.init_directories()
-        self.start_output_dir_listener()
-
         self.init_sqlite_db()
+        self.start_output_dir_listener()
 
         if frontend:
             print 'Starting the %s frontend at http://%s.' % (frontend, address)
@@ -82,7 +81,7 @@ class TcpViewer():
         self.start_threads(True)
         self.tcpflow_as_main_process(interface)
 
-    def handle_frontend(self, frontend, address):
+    def arrange_frontend(self, frontend, address):
         output_location = command = None
 
         if frontend == 'nodejs':

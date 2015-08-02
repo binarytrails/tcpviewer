@@ -1,2 +1,6 @@
-.DS_Store
-src/frontend/public/data/
+*.DS_Store
+*.pyc
+
+output
+public
+node_modules
