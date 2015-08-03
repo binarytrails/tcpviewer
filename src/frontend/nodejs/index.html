@@ -51,16 +51,22 @@
                 front.style.opacity = opacity;
 
                 flipped = "rotateY(0deg)";
-                isFlipped = front.style.transform == flipped;
+                isFlipped = back.style.transform == flipped;
                 if (isFlipped)
                 {
                     degrees = 180;
+                    opacity = 0;
+                    zindex = -1;
                 }
                 else
                 {
                     degrees = 0;
+                    opacity = 1;
+                    zindex = 0.6;
                 }
                 back.style.transform = flipped.replace("0", degrees);
+                back.style.opacity = opacity;
+                back.style.zIndex = zindex;
             }
 
             function buildCardFace(content, isfront, cardId, cardFace)
