@@ -4,9 +4,6 @@
         launch the frontends.
 '''
 
-import platform
-def runs_on(): return platform.linux_distribution()[0]
-
 import os, traceback, shutil, subprocess, Queue, re, uuid 
 import sqlite3 as lite
 
@@ -16,6 +13,8 @@ from datetime import datetime
 from threading import Thread
 from time import sleep
 from PIL import Image
+
+from Utilities import *
 
 if runs_on() == 'debian':
     from bs4 import BeautifulSoup as Soup
@@ -53,20 +52,19 @@ class TcpViewer():
     extraction_interval = None
     min_width = 500
     min_height = 500
-    
-    ipv4_regex = re.compile('[0-9]+(?:\.[0-9]+){3}')
 
-    def __init__(self, interface, frontend, address, output, clean, verbose=False):
+    def __init__(self, verbose, interface, exclude_ips, clean, output_dir, frontend, address):
         self.verbose = verbose
+        self.exclude_ips = exclude_ips
         
         if frontend and address:
-            output, frontend_command = self.arrange_frontend(frontend, address)
+            output_dir, frontend_command = self.arrange_frontend(frontend, address)
         else:
-            self.db_path = os.path.join(output, 'database.db')
+            self.db_path = os.path.join(output_dir, 'database.db')
         
-        self.output_dir = output 
-        self.raw_dir = os.path.join(output, 'raw')
-        self.images_dir = os.path.join(output, 'images')
+        self.output_dir = output_dir 
+        self.raw_dir = os.path.join(output_dir, 'raw')
+        self.images_dir = os.path.join(output_dir, 'images')
 
         if clean: self.clean_workspace()
 
@@ -135,10 +133,7 @@ class TcpViewer():
     def add_quotes(self, data):
         return "'" + str(data) + "'"
 
-    def insert_to_sqlite_db(self, filepath, file_uuid, src, dst):
-        macs = self.get_tcpflow_report_mac_addresses(filepath)
-        ips = re.findall(self.ipv4_regex, filepath)
-
+    def insert_to_sqlite_db(self, file_uuid, src, dst, macs, ips):
         command = ('INSERT INTO IMAGES Values(' +
             self.add_quotes(file_uuid) + ',' +
             self.add_quotes(datetime.now()) + ',' +
@@ -223,12 +218,20 @@ class TcpViewer():
                 file_uuid = str(uuid.uuid4())
                 src = os.path.abspath(os.path.join(self.raw_dir, filename))
                 dst = os.path.abspath(os.path.join(self.images_dir, file_uuid + '.jpg'))
+ 
+                macs = self.get_tcpflow_report_mac_addresses(filepath)
+                ips = re.findall(ipv4s_regex(), filepath)
 
-                self.insert_to_sqlite_db(filepath, file_uuid, src, dst)
+                if (ips[0] or ip[1]) in self.exclude_ips:
+                    if self.verbose:
+                        print 'Excluding packets from %s to %s.' % (ips[0], ips[1])
+                    continue
+
+                self.insert_to_sqlite_db(file_uuid, src, dst, macs, ips)
 
                 if self.verbose:
                     print 'Got an image higher than %sx%s minimum. Moving %s --> %s.' % (
-                        self.min_width, self.min_height, src,  dst)
+                        self.min_width, self.min_height, src, dst)
 
                 # overwrites existing, otherwise use .copy2()
                 shutil.move(src, dst)

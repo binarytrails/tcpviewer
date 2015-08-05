@@ -37,10 +37,14 @@ Go into *src/* and choose between running with an available *nodejs* frontend:
 or without a frontend by using only an output directory:
 
     ./run.py -vi wlan0 -h output/
-    
+
+it might be a good idea to add an exclude IP option of your server address to avoid capturing your own captured files accessed by one of your frontend clients using unencrypted HTTP requests:
+
+    -e <your-server-ip>
+
 for more options:
 
     ./run.py --help
 
-**You have to be aware that due to the *tcpflow* latency it takes around 40 seconds between the time someone sees the image over the unencrypted HTTP traffic and the time it is extracted by *tcpflow*. The positive side to this issue is that the *tcpflow* has always a perfect image reconstruction that was lacking with the other network interceptor tools.**
+**You have to be aware that due to the *tcpflow* latency, it takes around 40 seconds between the time someone sees the image over the unencrypted HTTP traffic and the time it is extracted by *tcpflow*. The positive side to this issue is that the *tcpflow* has always a perfect image reconstruction that was lacking with the other network interceptor tools.**
 
