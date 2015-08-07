@@ -202,7 +202,26 @@ class TcpViewer():
                 if tcpflow:
                         smac = str(tcpflow['mac_saddr'])
                         dmac = str(tcpflow['mac_daddr'])
-        return [smac, dmac]
+        macs = [smac, dmac]
+
+        if len(macs) != 2: 
+            raise ValueError('The packet MAC source or destination were not found in: %s.' % macs)
+        return macs
+
+    def get_tcpflow_filepath_ip_addresses(self, filepath):
+        ips = re.findall(ipv4s_regex(leading_zeros=True), filepath)
+
+        if len(ips) != 2:
+            print ValueError('The packet IP source or destination were not found in: %s.' % ips)
+
+        src_ip = remove_ipv4_leading_zeros(ips[0])
+        dst_ip = remove_ipv4_leading_zeros(ips[1])
+        ips = [src_ip, dst_ip]
+        
+        if (src_ip or dst_ip) in self.exclude_ips:
+            if self.verbose:
+                print 'Excluding packets from %s to %s.' % (src_ip, dst_ip)
+        return ips
 
     def image_extraction_queue_listener(self):
         while True:
@@ -218,14 +237,12 @@ class TcpViewer():
                 file_uuid = str(uuid.uuid4())
                 src = os.path.abspath(os.path.join(self.raw_dir, filename))
                 dst = os.path.abspath(os.path.join(self.images_dir, file_uuid + '.jpg'))
- 
-                macs = self.get_tcpflow_report_mac_addresses(filepath)
-                ips = re.findall(ipv4s_regex(), filepath)
 
-                if (ips[0] or ip[1]) in self.exclude_ips:
-                    if self.verbose:
-                        print 'Excluding packets from %s to %s.' % (ips[0], ips[1])
-                    continue
+                try:
+                    macs = self.get_tcpflow_report_mac_addresses(filepath)
+                    ips = self.get_tcpflow_filepath_ip_addresses(filepath)
+                except ValueError as e:
+                    if self.verbose: print e
 
                 self.insert_to_sqlite_db(file_uuid, src, dst, macs, ips)
 

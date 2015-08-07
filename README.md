@@ -38,9 +38,9 @@ or without a frontend by using only an output directory:
 
     ./run.py -vi wlan0 -h output/
 
-it might be a good idea to add an exclude IP option of your server address to avoid capturing your own captured files accessed by one of your frontend clients using unencrypted HTTP requests:
+it might be a good idea to add an exclude IPs option with your server address to avoid capturing your own captured files accessed by one of your frontend clients using unencrypted HTTP requests. You can write one or many IPs.
 
-    -e <your-server-ip>
+    ./run.py -vi wlan0 -f nodejs -a 0.0.0.0:8000 -e 192.168.2.10 10.0.0.1
 
 for more options:
 
