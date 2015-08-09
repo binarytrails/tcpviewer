@@ -1,11 +1,5 @@
-'''
-    The backend where we:
-        wrap the network interceptors tools;
-        launch the frontends.
-'''
-
-import os, traceback, shutil, subprocess, Queue, re, uuid 
-import sqlite3 as lite
+import os, traceback, shutil, Queue, re, uuid 
+import Utilities as utils
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -14,12 +8,7 @@ from threading import Thread
 from time import sleep
 from PIL import Image
 
-from Utilities import *
-
-if runs_on() == 'debian':
-    from bs4 import BeautifulSoup as Soup
-elif runs_on() == 'arch':
-    from BeautifulSoup import BeautifulSoup as Soup
+from TcpflowWrapper import TcpflowWrapper
 
 class OutputDirectoryListener(FileSystemEventHandler):
     
@@ -74,10 +63,13 @@ class TcpViewer():
 
         if frontend:
             print 'Starting the %s frontend at http://%s.' % (frontend, address)
-            self.start_subprocess(frontend_command) # needs db
+            utils.start_subprocess(frontend_command, True) # needs db
 
         self.start_threads(True)
-        self.tcpflow_as_main_process(interface)
+
+        self.tcpflow = TcpflowWrapper(verbose)
+        self.xml_report_path = os.path.join(self.raw_dir, 'report.xml')
+        self.tcpflow.as_main_process(interface, self.raw_dir)
 
     def arrange_frontend(self, frontend, address):
         output_location = command = None
@@ -110,14 +102,6 @@ class TcpViewer():
         if os.path.exists(self.images_dir) == False:
             os.mkdir(self.images_dir)
 
-    def execute_sql_command_on_sqlite_db(self, command):
-        connection = lite.connect(self.db_path)
-        with connection:
-            cursor = connection.cursor()
-            cursor.execute(command)
-            data = cursor.fetchone()
-        return data 
-
     def init_sqlite_db(self):
         command = '''CREATE TABLE IF NOT EXISTS IMAGES(
             HASH TEXT,
@@ -128,28 +112,7 @@ class TcpViewer():
             DIP TEXT
         );
         '''
-        self.execute_sql_command_on_sqlite_db(command)
-
-    def add_quotes(self, data):
-        return "'" + str(data) + "'"
-
-    def insert_to_sqlite_db(self, file_uuid, src, dst, macs, ips):
-        command = ('INSERT INTO IMAGES Values(' +
-            self.add_quotes(file_uuid) + ',' +
-            self.add_quotes(datetime.now()) + ',' +
-            self.add_quotes(macs[0]) + ',' +
-            self.add_quotes(macs[1]) + ',' +
-            self.add_quotes(ips[0]) + ',' +
-            self.add_quotes(ips[1]) + ');'
-        )
-        self.execute_sql_command_on_sqlite_db(command)
-    
-    def start_subprocess(self, command):
-        return subprocess.Popen(command,
-            shell = self.verbose,
-            stdout = subprocess.PIPE, 
-            stderr = subprocess.STDOUT
-        )
+        utils.execute_sqlite3_cmd(self.db_path, command)
 
     def start_output_dir_listener(self):
         event_handler = OutputDirectoryListener(
@@ -171,57 +134,16 @@ class TcpViewer():
         thread.daemon = as_daemon
         thread.start()
 
-    def get_tcpflow_report_mac_addresses(self, filename):
-        '''
-        XML report revelent structure
-
-            fileobject
-                filename            <--     root_filename
-                filesize
-                tcpflow             <--     mac addresses and more
-
-            byte_runs
-                byte_run
-                filename            <--     root_filename--HTTPBODY-#-?.?
-                filesize
-        '''
-        root_filename = filename[0:filename.rfind('-HTTPBODY-')]
-        smac = None
-        dmac = None
-
-        with open(self.xml_report_path) as report:
-            handler = report.read()
-            soup = Soup(handler, 'lxml')
-
-        for fileobject in soup.findAll('fileobject'):
-            filename = fileobject.find('filename')
-
-            if filename and root_filename in str(filename):
-                tcpflow = fileobject.find('tcpflow')
-
-                if tcpflow:
-                        smac = str(tcpflow['mac_saddr'])
-                        dmac = str(tcpflow['mac_daddr'])
-        macs = [smac, dmac]
-
-        if len(macs) != 2: 
-            raise ValueError('The packet MAC source or destination were not found in: %s.' % macs)
-        return macs
-
-    def get_tcpflow_filepath_ip_addresses(self, filepath):
-        ips = re.findall(ipv4s_regex(leading_zeros=True), filepath)
-
-        if len(ips) != 2:
-            print ValueError('The packet IP source or destination were not found in: %s.' % ips)
-
-        src_ip = remove_ipv4_leading_zeros(ips[0])
-        dst_ip = remove_ipv4_leading_zeros(ips[1])
-        ips = [src_ip, dst_ip]
-        
-        if (src_ip or dst_ip) in self.exclude_ips:
-            if self.verbose:
-                print 'Excluding packets from %s to %s.' % (src_ip, dst_ip)
-        return ips
+    def insert_to_sqlite_db(self, file_uuid, src, dst, macs, ips):
+        command = ('INSERT INTO IMAGES Values(' +
+            utils.quotes_wrap(file_uuid) + ',' +
+            utils.quotes_wrap(datetime.now()) + ',' +
+            utils.quotes_wrap(macs[0]) + ',' +
+            utils.quotes_wrap(macs[1]) + ',' +
+            utils.quotes_wrap(ips[0]) + ',' +
+            utils.quotes_wrap(ips[1]) + ');'
+        )
+        utils.execute_sqlite3_cmd(self.db_path, command)
 
     def image_extraction_queue_listener(self):
         while True:
@@ -239,8 +161,8 @@ class TcpViewer():
                 dst = os.path.abspath(os.path.join(self.images_dir, file_uuid + '.jpg'))
 
                 try:
-                    macs = self.get_tcpflow_report_mac_addresses(filepath)
-                    ips = self.get_tcpflow_filepath_ip_addresses(filepath)
+                    macs = self.tcpflow.get_macs_from_report(filepath, self.xml_report_path)
+                    ips = self.tcpflow.get_ips_from_filepath(filepath, self.exclude_ips)
                 except ValueError as e:
                     if self.verbose: print e
 
@@ -255,20 +177,4 @@ class TcpViewer():
 
             except (Queue.Empty, IOError) as e:
                 traceback.print_exc()
-
-    def tcpflow_as_main_process(self, interface):
-            '''
-                tcpflow related variables and the commmand for main process.
-            '''
-            self.xml_report_path = os.path.join(self.raw_dir, 'report.xml')
-            tcpflow = 'tcpflow -i ' + interface + ' -e http -o ' + self.raw_dir
-
-            try:
-                proc = self.start_subprocess(tcpflow)
-
-                while proc.poll() is None:
-                    if self.verbose: print proc.stdout.readline()
-
-            except KeyboardInterrupt:
-                print 'Got Keyboard interrupt. Stopping..'
 
