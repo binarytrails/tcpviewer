@@ -162,7 +162,10 @@ class TcpViewer():
 
                 try:
                     macs = self.tcpflow.get_macs_from_report(filepath, self.xml_report_path)
-                    ips = self.tcpflow.get_ips_from_filepath(filepath, self.exclude_ips)
+                    ips, exclude = self.tcpflow.get_ips_from_filepath(filepath, self.exclude_ips)
+                    if exclude:
+                        print 'Excluding packets from %s to %s.' % (ips[0], ips[1])
+                        continue
                 except ValueError as e:
                     if self.verbose: print e
 

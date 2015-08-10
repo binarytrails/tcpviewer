@@ -1,5 +1,4 @@
 import re
-
 import Utilities as utils
 
 if utils.runs_on() == 'debian':
@@ -27,16 +26,14 @@ class TcpflowWrapper():
         ips = re.findall(utils.ipv4s_regex(leading_zeros=True), filepath)
 
         if len(ips) != 2:
-            print ValueError('The packet IP source or destination were not found in: %s.' % ips)
+            raise ValueError('The %s IP src/dst were not found in its filename.' % filepath)
 
         src_ip = utils.remove_ipv4_leading_zeros(ips[0])
         dst_ip = utils.remove_ipv4_leading_zeros(ips[1])
         ips = [src_ip, dst_ip]
         
-        if (src_ip or dst_ip) in exclude:
-            if self.verbose:
-                print 'Excluding packets from %s to %s.' % (src_ip, dst_ip)
-        return ips
+        if (src_ip or dst_ip) in exclude: return ips, True
+        return ips, False
 
     def get_macs_from_report(self, filename, report_path):
         ''' 
