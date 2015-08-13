@@ -2,13 +2,13 @@
 
 We wrap *tcpflow* in the backend to arrange data for dynamic visualisation for the frontend.
 
+![Preview](https://raw.githubusercontent.com/sevaivanov/tcpviewer/master/res/img/preview.gif)
+
 Our goal is to raise awareness about the quantity of personal information available to everyone connected to a network. We accomplish this using a fun and interactive image board.
 
 The majority of people don't understand the network traffic. Knowing the OSI model and protocols by heart can be painful. We believe that our tool will bring more people into networking by making visualization accessible and fun.
 
 The code base was written during HackPrinceton 2015.
-
-![Preview](https://raw.githubusercontent.com/sevaivanov/tcpviewer/master/res/img/preview.gif)
 
 ## Setup
 
