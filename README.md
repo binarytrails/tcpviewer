@@ -8,6 +8,8 @@ The majority of people don't understand the network traffic. Knowing the OSI mod
 
 The code base was written during HackPrinceton 2015.
 
+![Preview](https://raw.githubusercontent.com/sevaivanov/tcpviewer/master/res/img/preview.gif)
+
 ## Setup
 
 Install the system dependecies from *sys_dependencies.txt* and the python ones with:
