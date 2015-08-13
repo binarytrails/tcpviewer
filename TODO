@@ -1,1 +1,7 @@
-* Make shell script to install sys_dependecies.txt depending on your os.
+- issues
++ shell script to install sys_dependecies.txt depending on your os
++ more image types support in the TcpViewer
++ more run.py options and bind them to the TcpViewer variables.
+    - Minimum image size
+    - Image formats
++ decrypt encrypted traffic
