@@ -27,7 +27,9 @@ function flipCard(cardId)
 { 
     front = document.getElementById("frontImage-" + cardId);
     back = document.getElementById("backData-" + cardId);
-    
+   
+    // zIndex & opacity replace the lack of rotateY() support in mobile.
+
     flipped = "rotateY(180deg)";
     isFlipped = front.style.transform == flipped; 
     if (isFlipped)
@@ -67,15 +69,12 @@ function buildCardFace(content, isfront, cardId, cardFace)
     var a = document.createElement("a");
     a.addEventListener("click", function()
     {
-        flipCard(cardId);
-
-        // get the data only once
         back = document.getElementById("backData-" + cardId);
-        a = back.firstChild;
-        if (a.childNodes.length == 0)
+        if (back.firstChild.childNodes.length == 1) // get once
         {
             iosocket.emit('getData', cardId);
         }
+        flipCard(cardId);
     });
 
     if (isfront)
@@ -102,7 +101,7 @@ function buildNewImageContainer(filename, url)
     image.src = url + filename;
     
     front = buildCardFace(image, true, filename, "frontImage"); 
-    back = buildCardFace("", false, filename, "backData");
+    back = buildCardFace("<dl></dl>", false, filename, "backData");
     
     var container = document.createElement("div");
     container.className = "container-" + filename; 
