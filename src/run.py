@@ -15,17 +15,19 @@ Opitons:
     -e, --exclude       Exclude this IP's from source and destination in capture.
 '''
 
-import sys, re
+import sys
 from docopt import docopt
 
 from Utilities import *
 from TcpViewer import TcpViewer
 
+FRONTENDS = ['nodejs']
+
 if __name__ == '__main__':
     args = docopt(__doc__, version='TcpViewer 0.1')
 
-    if args['<frontend>'] and args['<frontend>'] not in ['nodejs']:
-        sys.exit('The ' + args['<frontend>'] + ' frontend is not availabe. See --help.')
+    if args['<frontend>'] and args['<frontend>'] not in FRONTENDS:
+        sys.exit('The ' + args['<frontend>'] + ' frontend is not available. See --help.')
 
     try:
         if args['<address>']: validate_ipv4_colon_port(args['<address>'])
