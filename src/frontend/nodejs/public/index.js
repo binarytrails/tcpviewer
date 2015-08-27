@@ -129,7 +129,7 @@ iosocket.on('addImages', function(filenames, url)
 {
     for (i = 0; i < filenames.length; i++)
     {
-        insertImageAtFirst(filenames[i], url, false);
+        insertImageAtFirst(filenames[i], url);
     }
 });
 
