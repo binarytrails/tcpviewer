@@ -19,6 +19,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Andrei Savin, Vsevolod Ivanov",
+  "author": "Andrei Savin, Seva Ivanov",
   "license": "GPLv3"
 }
