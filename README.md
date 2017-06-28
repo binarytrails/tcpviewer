@@ -12,9 +12,16 @@ The code base was written during HackPrinceton 2015.
 
 ## Setup
 
-Install the system dependecies from *sys_dependencies.txt* and the python ones with:
+1. Backend
 
-    pip install -r requirements.txt --user
+    Install system dependecies from *sys_dependencies.txt* then,
+
+        pip install -r requirements.txt --user
+
+2. Frontend
+
+        cd frontend/nodejs/
+        npm install
 
 ### Tcpflow
 
